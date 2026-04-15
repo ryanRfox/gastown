@@ -1343,8 +1343,15 @@ func detectZombieDeadSession(bd *BdCli, workDir, townRoot, rigName, polecatName,
 		return zombie, true
 	}
 
-	// Standard zombie detection: active state or hooked bead with dead session.
+	// hq-amjtf: Idle polecats with dead sessions are not zombies.
+	// A dead session is expected behavior for an idle polecat (result of gt done).
+	// Skip zombie detection if the polecat is registered as idle.
 	typedState := beads.AgentState(snapState)
+	if typedState == beads.AgentStateIdle {
+		return ZombieResult{}, false
+	}
+
+	// Standard zombie detection: active state or hooked bead with dead session.
 	if !isZombieState(typedState, snapHook) {
 		return ZombieResult{}, false
 	}
@@ -1415,6 +1422,7 @@ func isZombieState(agentState beads.AgentState, hookBead string) bool {
 	}
 	return agentState.IsActive()
 }
+
 
 // handleZombieRestart determines the restart action for a confirmed zombie (gt-dsgp).
 // Restarts the session regardless of cleanup state. For dirty state, creates a
